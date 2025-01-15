@@ -1,0 +1,7 @@
+package com.mysite.sbb.user;
+@RequiredArgsConstructor
+@Controller
+@RequestMapping("/user")
+public class UserController {
+
+}

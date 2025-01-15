@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shirink-to-fit=no">
+
+	<!-- Bootstrap CSS -->
+	<!-- rel은 Relation의 줄임말로, 연결된 외부 리소스가 현재 문서와 어떤 관계를 갖고 있는지 명시한다. -->
+	<link rel="stylesheet" type="text/css" th:href="@{/bootstrap.min.css}">
+
+	<!-- sbb CSS -->
+	<link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+	<title>Hello, sbb!</title>
+</head>
+
+<body>
+	<!-- 내비게이션 바 -->
+	<nav th:replace="~{navbar :: navbarFragment}"></nav>
+
+	<!-- 기본 템플릿 안에 삽입될 내용 Start -->
+	<th:block layout:fragment="content"></th:block>
+
+	<!-- Bootstrap JS -->
+	<script th:src="@{/bootstrap.min.js}"></script>
+	
+	<!-- JavaScript -->
+	<th:block layout:fragment="script"></th:block>
+</body>
+
+</html>

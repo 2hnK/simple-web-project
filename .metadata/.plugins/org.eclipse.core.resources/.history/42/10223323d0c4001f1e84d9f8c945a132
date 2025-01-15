@@ -1,0 +1,9 @@
+package com.mysite.sbb.user;
+
+@Getter
+@Setter
+@Entity
+public class SiteUser {
+	@Id
+	@GenerateValue(strategy = GenerationType.IDENTITY)
+}
