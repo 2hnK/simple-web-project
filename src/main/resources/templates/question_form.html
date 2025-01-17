@@ -1,25 +1,28 @@
 <html layout:decorate="~{layout}">
 <div layout:fragment="content" class="container">
-	<h5 class="my-3 border-bottom pb-2">질문 등록</h5>
+    <h5 class="my-3 border-bottom pb-2">질문 등록</h5>
 
-	<!-- 질문 등록 폼-->
-	<form th:object="${questionForm}" method="post">
-		<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <!-- 질문 등록 폼-->
+    <form th:object="${questionForm}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <!-- 사용자가 HTML 폼을 제출할 때, 이 숨겨진 필드에 포함된 CSRF 토큰이 함께 전송됩니다.
+             서버는 전달받은 CSRF 토큰과 세션에 저장된 토큰을 비교하여 요청이 정당한지 확인합니다.
+             토큰이 일치하지 않으면 서버는 요청을 거부하여 CSRF 공격을 방지합니다. -->
 
-		<div th:replace="~{form_errors :: formErrorsFragment}"></div>
+        <div th:replace="~{form_errors :: formErrorsFragment}"></div>
 
-		<div class="mb-3">
-			<label for="subject" class="form-label">제목</label>
-			<input type="text" th:field="*{subject}" class="form-control">
-		</div>
+        <div class="mb-3">
+            <label for="subject" class="form-label">제목</label>
+            <input type="text" th:field="*{subject}" class="form-control">
+        </div>
 
-		<div class="mb-3">
-			<label for="content" class="form-label">내용</label>
-			<textarea th:field="*{content}" class="form-control" rows="10"></textarea>
-		</div>
+        <div class="mb-3">
+            <label for="content" class="form-label">내용</label>
+            <textarea th:field="*{content}" class="form-control" rows="10"></textarea>
+        </div>
 
-		<input type="submit" value="저장하기" class="btn btn-primary my-2">
-	</form>
+        <input type="submit" value="저장하기" class="btn btn-primary my-2">
+    </form>
 </div>
 
 </html>

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+import com.mysite.sbb.comment.Comment;
 import org.springframework.data.annotation.CreatedDate;
 
 import com.mysite.sbb.answer.Answer;
@@ -47,5 +48,8 @@ public class Question {
 	private LocalDateTime modifyDate;
 	
 	@ManyToMany
-	Set<SiteUser> voter;
+	private Set<SiteUser> voter;
+
+	@OneToMany(mappedBy = "question", cascade = CascadeType.REMOVE)
+	private List<Comment> commentList;
 }
