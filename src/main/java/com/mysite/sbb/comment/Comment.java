@@ -1,15 +1,25 @@
 package com.mysite.sbb.comment;
 
+import java.time.LocalDateTime;
+import java.util.Set;
+
+import org.springframework.data.annotation.CreatedDate;
+
 import com.mysite.sbb.answer.Answer;
 import com.mysite.sbb.question.Question;
 import com.mysite.sbb.user.SiteUser;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
-
-import java.time.LocalDateTime;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -43,7 +53,8 @@ public class Comment {
     @PreUpdate // 엔티티가 Update 되기 전에 실행하는 메서드
     private void validateAssociation() {
         if ((question == null && answer == null) || (question != null && answer != null)) {
-            throw new IllegalStateException("Comment must be associated with either a Question or an Answer, not both.");
+            throw new IllegalStateException(
+                    "Comment must be associated with either a Question or an Answer, not both.");
         }
     }
 }

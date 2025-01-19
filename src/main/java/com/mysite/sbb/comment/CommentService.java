@@ -1,19 +1,27 @@
 package com.mysite.sbb.comment;
 
-import com.mysite.sbb.DataNotFoundException;
-import com.mysite.sbb.answer.Answer;
-import com.mysite.sbb.question.Question;
-import com.mysite.sbb.user.SiteUser;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.mysite.sbb.DataNotFoundException;
+import com.mysite.sbb.answer.Answer;
+import com.mysite.sbb.answer.AnswerRepository;
+import com.mysite.sbb.question.Question;
+import com.mysite.sbb.question.QuestionRepository;
+import com.mysite.sbb.user.SiteUser;
+
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
 public class CommentService {
     private final CommentRepository commentRepository;
+    private final QuestionRepository questionRepository;
+    private final AnswerRepository answerRepository;
 
     public Comment create(Question question, String content, SiteUser author) {
         Comment comment = new Comment();
@@ -45,19 +53,31 @@ public class CommentService {
         this.commentRepository.delete(comment);
     }
 
-    public Comment getComment(Question question, Integer id) {
-        Optional<Comment> comment = this.commentRepository.findByQuestionAndId(question, id);
+    public Comment getQuestionComment(Question question, Integer commentId) {
+        Optional<Comment> comment = this.commentRepository.findById(commentId);
         if (comment.isPresent()) {
-            return comment.get();
+            Comment foundComment = comment.get();
+            if (foundComment.getQuestion() != null &&
+                    foundComment.getQuestion().getId().equals(question.getId())) {
+                return foundComment;
+            }
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "해당 질문의 댓글이 아닙니다.");
         } else {
             throw new DataNotFoundException("comment not found");
         }
     }
 
-    public Comment getComment(Answer answer, Integer id) {
-        Optional<Comment> comment = this.commentRepository.findByAnswerAndId(answer, id);
+    public Comment getAnswerComment(Answer answer, Integer commentId) {
+        Optional<Comment> comment = this.commentRepository.findById(commentId);
         if (comment.isPresent()) {
-            return comment.get();
+            Comment foundComment = comment.get();
+            if (foundComment.getAnswer() != null &&
+                    foundComment.getAnswer().getId().equals(answer.getId())) {
+                return foundComment;
+            }
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "해당 답변의 댓글이 아닙니다.");
         } else {
             throw new DataNotFoundException("comment not found");
         }

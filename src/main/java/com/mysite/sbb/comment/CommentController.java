@@ -1,13 +1,7 @@
 package com.mysite.sbb.comment;
 
-import com.mysite.sbb.answer.Answer;
-import com.mysite.sbb.answer.AnswerService;
-import com.mysite.sbb.question.Question;
-import com.mysite.sbb.question.QuestionService;
-import com.mysite.sbb.user.SiteUser;
-import com.mysite.sbb.user.UserService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.security.Principal;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -17,9 +11,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.security.Principal;
+import com.mysite.sbb.answer.Answer;
+import com.mysite.sbb.answer.AnswerService;
+import com.mysite.sbb.question.Question;
+import com.mysite.sbb.question.QuestionService;
+import com.mysite.sbb.user.SiteUser;
+import com.mysite.sbb.user.UserService;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RequestMapping("/comment")
 @Controller
@@ -31,12 +34,12 @@ public class CommentController {
     private final AnswerService answerService;
 
     @PreAuthorize("isAuthenticated()")
-    @PostMapping("/create/question{questionId}")
+    @PostMapping("/create/question/{questionId}")
     public String createCommentForQuestion(Model model,
-                                @PathVariable("questionId") Integer id,
-                                @Valid CommentForm commentForm,
-                                BindingResult bindingResult,
-                                Principal principal) {
+            @PathVariable("questionId") Integer id,
+            @Valid CommentForm commentForm,
+            BindingResult bindingResult,
+            Principal principal) {
         Question question = this.questionService.getQuestion(id);
         SiteUser siteUser = this.userService.getUser(principal.getName());
 
@@ -52,12 +55,12 @@ public class CommentController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @PostMapping("/create/answer{answerId}")
+    @PostMapping("/create/answer/{answerId}")
     public String createCommentForAnswer(Model model,
-                                           @PathVariable("answerId") Integer answerId,
-                                           @Valid CommentForm commentForm,
-                                           BindingResult bindingResult,
-                                           Principal principal) {
+            @PathVariable("answerId") Integer answerId,
+            @Valid CommentForm commentForm,
+            BindingResult bindingResult,
+            Principal principal) {
         Answer answer = this.answerService.getAnswer(answerId);
         SiteUser siteUser = this.userService.getUser(principal.getName());
 
@@ -73,12 +76,12 @@ public class CommentController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/delete/question{questionId}_{commentId}")
+    @GetMapping("/delete/question/{questionId}/{commentId}")
     public String deleteCommentForQuestion(Principal principal,
-                                @PathVariable("questionId") Integer questionId,
-                                @PathVariable("commentId") Integer CommentId) {
+            @PathVariable("questionId") Integer questionId,
+            @PathVariable("commentId") Integer commentId) {
         Question question = this.questionService.getQuestion(questionId);
-        Comment comment = this.commentService.getComment(question, CommentId);
+        Comment comment = this.commentService.getQuestionComment(question, commentId);
         if (!comment.getAuthor().getUsername().equals(principal.getName())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제 권한이 없습니다.");
         }
@@ -87,12 +90,12 @@ public class CommentController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/delete/answer{answerId}_{commentId}")
+    @GetMapping("/delete/answer/{answerId}/{commentId}")
     public String deleteCommentForAnswer(Principal principal,
-                                @PathVariable("answerId") Integer answerId,
-                                @PathVariable("commentId") Integer CommentId) {
+            @PathVariable("answerId") Integer answerId,
+            @PathVariable("commentId") Integer commentId) {
         Answer answer = this.answerService.getAnswer(answerId);
-        Comment comment = this.commentService.getComment(answer, CommentId);
+        Comment comment = this.commentService.getAnswerComment(answer, commentId);
         if (!comment.getAuthor().getUsername().equals(principal.getName())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제 권한이 없습니다.");
         }
@@ -101,26 +104,62 @@ public class CommentController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/vote/question{questionId}_{commentId}")
+    @GetMapping("/vote/question/{questionId}/{commentId}")
     public String voteCommentForQuestion(Principal principal,
-                                @PathVariable("questionId") Integer questionId,
-                                @PathVariable("commentId") Integer commentId) {
+            @PathVariable("questionId") Integer questionId,
+            @PathVariable("commentId") Integer commentId) {
         Question question = this.questionService.getQuestion(questionId);
-        Comment comment = this.commentService.getComment(question, commentId);
+        Comment comment = this.commentService.getQuestionComment(question, commentId);
         SiteUser siteUser = this.userService.getUser(principal.getName());
         this.commentService.vote(comment, siteUser);
         return String.format("redirect:/question/detail/%s#comment_%s", question.getId(), comment.getId());
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/vote/answer{answerId}_{commentId}")
+    @GetMapping("/vote/answer/{answerId}/{commentId}")
     public String voteCommentForAnswer(Principal principal,
-                                         @PathVariable("answerId") Integer answerId,
-                                         @PathVariable("commentId") Integer commentId) {
+            @PathVariable("answerId") Integer answerId,
+            @PathVariable("commentId") Integer commentId) {
         Answer answer = this.answerService.getAnswer(answerId);
-        Comment comment = this.commentService.getComment(answer, commentId);
+        Comment comment = this.commentService.getAnswerComment(answer, commentId);
         SiteUser siteUser = this.userService.getUser(principal.getName());
         this.commentService.vote(comment, siteUser);
         return String.format("redirect:/question/detail/%s#comment_%s", answer.getQuestion().getId(), comment.getId());
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/modify/question/{questionId}/{commentId}")
+    public String modifyQuestionComment(@PathVariable("questionId") Integer questionId,
+            @PathVariable("commentId") Integer commentId,
+            @RequestParam String content,
+            Principal principal) {
+        Question question = this.questionService.getQuestion(questionId);
+        Comment comment = this.commentService.getQuestionComment(question, commentId);
+
+        if (!comment.getAuthor().getUsername().equals(principal.getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "수정권한이 없습니다.");
+        }
+
+        this.commentService.modify(comment, content);
+        return String.format("redirect:/question/detail/%s#comment_%s",
+                questionId, commentId);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/modify/answer/{answerId}/{commentId}")
+    public String modifyAnswerComment(@PathVariable("answerId") Integer answerId,
+            @PathVariable("commentId") Integer commentId,
+            @RequestParam String content,
+            Principal principal) {
+        Answer answer = this.answerService.getAnswer(answerId);
+        Comment comment = this.commentService.getAnswerComment(answer, commentId);
+
+        if (!comment.getAuthor().getUsername().equals(principal.getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "수정권한이 없습니다.");
+        }
+
+        this.commentService.modify(comment, content);
+        return String.format("redirect:/question/detail/%s#comment_%s",
+                answer.getQuestion().getId(), commentId);
     }
 }
