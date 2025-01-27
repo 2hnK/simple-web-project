@@ -46,11 +46,17 @@ public class QuestionController {
                          @PathVariable("id") Integer id,
                          AnswerForm answerForm,
                          CommentForm commentForm,
-                         @RequestParam(value = "page", defaultValue = "0") int page) {
+                         @RequestParam(value = "page", defaultValue = "0") int page,
+                         @RequestParam(value = "sort", defaultValue = "voter") String sort) {
+
         Question question = this.questionService.getQuestion(id);
-        Page<Answer> paging = this.answerService.getAnswerOrderByVoterDesc(page, question);
+        Page<Answer> paging = sort.equals("voter")
+                ? this.answerService.getAnswerOrderByVoterDesc(page, question)
+                : this.answerService.getAnswerOrderByCreateDateDesc(page, question);
+
         model.addAttribute("paging", paging);
         model.addAttribute("question", question);
+
         return "question_detail";
     }
 
